@@ -5,6 +5,7 @@ import Link from "next/link";
 import { slugify } from '../utils/slugify';
 import Image from "next/image";
 import styles from "./page.module.css";
+import { supabase } from "../../supabaseClient";
 
 type District = {
   id: string;
@@ -16,9 +17,43 @@ type Project = {
   name: string;
 };
 
+type Post = {
+  id: number;
+  title: string;
+  slug: string;
+  price: number;
+  area: number;
+  bedrooms: number;
+  location: string;
+  avatar_image: string;
+  purpose: string;
+  project_name: string;
+  district_id: number;
+  districts: { name: string };
+};
+
+type FeaturedProject = {
+  id: number;
+  name: string;
+  slug: string;
+  description: string;
+  district_id: number;
+  districts: { name: string };
+};
+
+type DistrictWithPostCount = {
+  id: string;
+  name: string;
+  post_count: number;
+};
+
 export default function Home() {
   const [districts, setDistricts] = useState<District[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [latestSalePosts, setLatestSalePosts] = useState<Post[]>([]);
+  const [latestRentPosts, setLatestRentPosts] = useState<Post[]>([]);
+  const [featuredProjectsData, setFeaturedProjectsData] = useState<FeaturedProject[]>([]);
+  const [districtsWithPostCount, setDistrictsWithPostCount] = useState<DistrictWithPostCount[]>([]);
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [selectedProject, setSelectedProject] = useState("");
   const [activeTab, setActiveTab] = useState("bán");
@@ -26,23 +61,8 @@ export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  const featuredProjects = [
-    { name: "Vinhomes Ocean Park", location: "Gia Lâm, Hà Nội", image: "https://picsum.photos/300/200?random=6" },
-    { name: "The Zei", location: "Nam Từ Liêm, Hà Nội", image: "https://picsum.photos/300/200?random=7" },
-    { name: "Masteri Waterfront", location: "Gia Lâm, Hà Nội", image: "https://picsum.photos/300/200?random=8" },
-    { name: "BRG Smart City", location: "Đông Anh, Hà Nội", image: "https://picsum.photos/300/200?random=9" },
-    { name: "Vinhomes Smart City", location: "Nam Từ Liêm, Hà Nội", image: "https://picsum.photos/300/200?random=10" },
-    { name: "Ecopark", location: "Văn Giang, Hưng Yên", image: "https://picsum.photos/300/200?random=11" },
-    { name: "Sunshine City", location: "Bắc Từ Liêm, Hà Nội", image: "https://picsum.photos/300/200?random=12" },
-    { name: "Keangnam Landmark 72", location: "Nam Từ Liêm, Hà Nội", image: "https://picsum.photos/300/200?random=13" },
-    { name: "Royal City", location: "Thanh Xuân, Hà Nội", image: "https://picsum.photos/300/200?random=14" },
-    { name: "Times City", location: "Hai Bà Trưng, Hà Nội", image: "https://picsum.photos/300/200?random=15" },
-    { name: "The Manor", location: "Nam Từ Liêm, Hà Nội", image: "https://picsum.photos/300/200?random=16" },
-    { name: "Ciputra", location: "Tây Hồ, Hà Nội", image: "https://picsum.photos/300/200?random=17" },
-  ];
-
   const projectsPerSlide = 4;
-  const totalSlides = Math.ceil(featuredProjects.length / projectsPerSlide);
+  const totalSlides = Math.ceil(featuredProjectsData.length / projectsPerSlide);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % totalSlides);
@@ -67,6 +87,60 @@ export default function Home() {
         .then((data: Project[]) => setProjects(data));
     }
   }, [selectedDistrict]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      // Fetch posts
+      const { data: saleData, error: saleError } = await supabase
+        .from('posts')
+        .select('*, districts(name)')
+        .eq('purpose', 'Bán')
+        .order('created_at', { ascending: false })
+        .limit(8);
+      if (saleError) console.error('Error fetching sale posts:', saleError);
+      else setLatestSalePosts(saleData as any[]);
+
+      const { data: rentData, error: rentError } = await supabase
+        .from('posts')
+        .select('*, districts(name)')
+        .eq('purpose', 'Cho thuê')
+        .order('created_at', { ascending: false })
+        .limit(8);
+      if (rentError) console.error('Error fetching rent posts:', rentError);
+      else setLatestRentPosts(rentData as any[]);
+
+      // Fetch featured projects
+      const { data: projectsData, error: projectsError } = await supabase
+        .from('projects')
+        .select('*, districts(name)')
+        .order('created_at', { ascending: false })
+        .limit(12);
+      if (projectsError) console.error('Error fetching projects:', projectsError);
+      else setFeaturedProjectsData(projectsData as FeaturedProject[]);
+
+      // Fetch districts with post count
+      const { data: districtsData, error: districtsError } = await supabase
+        .from('districts')
+        .select('id, name');
+      if (districtsError) {
+        console.error('Error fetching districts:', districtsError);
+      } else {
+        const counts = await Promise.all(
+          districtsData.map(async (district) => {
+            const { count, error: countError } = await supabase
+              .from('posts')
+              .select('*', { count: 'exact', head: true })
+              .eq('district_id', district.id);
+            if (countError) console.error(`Error counting posts for district ${district.id}:`, countError);
+            return { ...district, post_count: count || 0 };
+          })
+        );
+        setDistrictsWithPostCount(counts as DistrictWithPostCount[]);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <div>
@@ -252,60 +326,34 @@ export default function Home() {
         </section>
         <section className={styles.apartmentSection}>
           <h2>Căn hộ chung cư theo khu vực</h2>
-          <div className={styles.apartmentGridHorizontal}>
-            <div className={styles.largeApartmentItemHorizontal}>
-              <img
-                src="https://picsum.photos/600/400?random=1"
-                alt="Quận Cầu Giấy"
-              />
-              <div className={styles.apartmentInfo}>
-                <h3>Quận Cầu Giấy</h3>
-                <p>895 tin đăng</p>
-              </div>
-            </div>
-            <div className={styles.smallApartmentItemsHorizontal}>
-              <div className={styles.apartmentItem}>
-                <img
-                  src="https://picsum.photos/300/200?random=2"
-                  alt="Quận Nam Từ Liêm"
-                />
-                <div className={styles.apartmentInfo}>
-                  <h3>Quận Nam Từ Liêm</h3>
-                  <p>705 tin đăng</p>
+            {districtsWithPostCount.length > 0 && (
+              <div className={styles.apartmentGridHorizontal}>
+                <div className={styles.largeApartmentItemHorizontal}>
+                  <img
+                    src={`https://picsum.photos/600/400?random=${districtsWithPostCount[0].id}`}
+                    alt={districtsWithPostCount[0].name}
+                  />
+                  <div className={styles.apartmentInfo}>
+                    <h3>Quận {districtsWithPostCount[0].name}</h3>
+                    <p>{districtsWithPostCount[0].post_count} tin đăng</p>
+                  </div>
+                </div>
+                <div className={styles.smallApartmentItemsHorizontal}>
+                  {districtsWithPostCount.slice(1, 5).map((district) => (
+                    <div className={styles.apartmentItem} key={district.id}>
+                      <img
+                        src={`https://picsum.photos/300/200?random=${district.id}`}
+                        alt={district.name}
+                      />
+                      <div className={styles.apartmentInfo}>
+                        <h3>Quận {district.name}</h3>
+                        <p>{district.post_count} tin đăng</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <div className={styles.apartmentItem}>
-                <img
-                  src="https://picsum.photos/300/200?random=3"
-                  alt="CC Quận Bắc Từ Liêm"
-                />
-                <div className={styles.apartmentInfo}>
-                  <h3>CC Quận Bắc Từ Liêm</h3>
-                  <p>517 tin đăng</p>
-                </div>
-              </div>
-              <div className={styles.apartmentItem}>
-                <img
-                  src="https://picsum.photos/300/200?random=4"
-                  alt="Quận Tây Hồ"
-                />
-                <div className={styles.apartmentInfo}>
-                  <h3>Quận Tây Hồ</h3>
-                  <p>72 tin đăng</p>
-                </div>
-              </div>
-              <div className={styles.apartmentItem}>
-                <img
-                  src="https://picsum.photos/300/200?random=5"
-                  alt="Quận Thanh Xuân"
-                />
-                <div className={styles.apartmentInfo}>
-                  <h3>Quận Thanh Xuân</h3>
-                  <p>69 tin đăng</p>
-                </div>
-              </div>
-            </div>
-          </div>
+            )}
         </section>
         <section className={styles.featuredProjectsSection}>
           <h2>Dự án nổi bật</h2>
@@ -313,12 +361,12 @@ export default function Home() {
             <button onClick={prevSlide} className={styles.sliderButton}>&#10094;</button>
             <div className={styles.projectsSlider}>
               <div className={styles.projectsGrid} style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
-                {featuredProjects.map((project, index) => (
-                  <div className={styles.projectCard} key={index}>
-                    <img src={project.image} alt={project.name} />
+                {featuredProjectsData.map((project) => (
+                  <div className={styles.projectCard} key={project.id}>
+                    <img src={`https://picsum.photos/300/200?random=${project.id}`} alt={project.name} />
                     <div className={styles.projectInfo}>
                       <h3>{project.name}</h3>
-                      <p>{project.location}</p>
+                      <p>{project.districts.name}</p>
                     </div>
                   </div>
                 ))}
@@ -333,23 +381,19 @@ export default function Home() {
             <Link href="/bat-dong-san-ban" className={styles.seeMoreButton}>Xem thêm</Link>
           </div>
           <div className={styles.propertiesGrid}>
-            {[...Array(8)].map((_, i) => {
-              const title = `Bán căn hộ chung cư ${i + 1}`;
-              const slug = slugify(title);
-              return (
-                <Link href={`/tin-dang/${slug}`} key={i} className={styles.propertyLink}>
-                  <div className={styles.propertyCard}>
-                    <img src={`https://picsum.photos/300/200?random=${18 + i}`} alt={title} />
-                    <div className={styles.propertyInfo}>
-                      <h3>{title}</h3>
-                      <p className={styles.price}>{Math.floor(Math.random() * 5) + 1} tỷ</p>
-                      <p className={styles.details}>70m² - 2 PN</p>
-                      <p className={styles.location}>Quận {i + 1}, Hà Nội</p>
-                    </div>
+            {latestSalePosts.map((post) => (
+              <Link href={`/tin-dang/${post.slug}`} key={post.id} className={styles.propertyLink}>
+                <div className={styles.propertyCard}>
+                  <img src={post.avatar_image} alt={post.title} />
+                  <div className={styles.propertyInfo}>
+                    <h3>{post.title}</h3>
+                    <p className={styles.price}>{(post.price / 1000000000).toFixed(2)} tỷ</p>
+                    <p className={styles.details}>{post.area}m² - {post.bedrooms} PN</p>
+                    <p className={styles.location}>{post.project_name}, {post.districts.name}</p>
                   </div>
-                </Link>
-              );
-            })}
+                </div>
+              </Link>
+            ))}
           </div>
         </section>
         <section className={styles.latestPropertiesSection}>
@@ -358,23 +402,19 @@ export default function Home() {
             <Link href="/bat-dong-san-thue" className={styles.seeMoreButton}>Xem thêm</Link>
           </div>
           <div className={styles.propertiesGrid}>
-            {[...Array(8)].map((_, i) => {
-              const title = `Cho thuê căn hộ ${i + 1}`;
-              const slug = slugify(title);
-              return (
-                <Link href={`/tin-dang/${slug}`} key={i} className={styles.propertyLink}>
+            {latestRentPosts.map((post) => (
+                <Link href={`/tin-dang/${post.slug}`} key={post.id} className={styles.propertyLink}>
                   <div className={styles.propertyCard}>
-                    <img src={`https://picsum.photos/300/200?random=${28 + i}`} alt={title} />
+                    <img src={post.avatar_image} alt={post.title} />
                     <div className={styles.propertyInfo}>
-                      <h3>{title}</h3>
-                      <p className={styles.price}>{Math.floor(Math.random() * 10) + 5} triệu/tháng</p>
-                      <p className={styles.details}>50m² - 1 PN</p>
-                      <p className={styles.location}>Quận {i + 1}, Hà Nội</p>
+                      <h3>{post.title}</h3>
+                      <p className={styles.price}>{(post.price / 1000000).toFixed(0)} triệu/tháng</p>
+                      <p className={styles.details}>{post.area}m² - {post.bedrooms} PN</p>
+                      <p className={styles.location}>{post.project_name}, {post.districts.name}</p>
                     </div>
                   </div>
                 </Link>
-              );
-            })}
+            ))}
           </div>
         </section>
       </main>
