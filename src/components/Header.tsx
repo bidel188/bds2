@@ -46,7 +46,7 @@ export default function Header({ showSearch = false }: HeaderProps) {
 
   const handleSearch = () => {
     const queryParams = new URLSearchParams();
-    
+
     queryParams.set('loai', activeTab === 'bán' ? 'ban' : 'thue');
 
     if (selectedDistrict) {
@@ -63,7 +63,11 @@ export default function Header({ showSearch = false }: HeaderProps) {
       }
     }
 
-    const url = `/tim-kiem?${queryParams.toString()}`;
+    const baseSlug = activeTab === 'bán' 
+      ? '/ban-can-ho-chung-cu' 
+      : '/cho-thue-can-ho-chung-cu';
+
+    const url = `${baseSlug}?${queryParams.toString()}`;
     router.push(url);
   };
 

@@ -1,11 +1,12 @@
 "use client";
 
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useState, Suspense } from 'react';
 import { supabase } from '@/supabaseClient';
 import Link from 'next/link';
 import styles from './SearchPage.module.css';
 import Header from '@/components/Header';
+import { slugify } from '@/utils/slugify';
 
 type Post = {
   id: number;
@@ -23,6 +24,7 @@ type Post = {
 
 function SearchContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [results, setResults] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -57,6 +59,27 @@ function SearchContent() {
 
     fetchResults();
   }, [propertyType, district, project]);
+
+  const handleSearch = () => {
+    const queryParams = new URLSearchParams();
+
+    queryParams.set('loai', propertyType === 'ban' ? 'ban' : 'thue');
+
+    if (district) {
+      queryParams.set('quan', slugify(district));
+    }
+
+    if (project) {
+      queryParams.set('duan', slugify(project));
+    }
+
+    const baseSlug = propertyType === 'ban' 
+      ? '/ban-can-ho-chung-cu' 
+      : '/cho-thue-can-ho-chung-cu';
+
+    const url = `${baseSlug}?${queryParams.toString()}`;
+    router.push(url);
+  };
 
   return (
     <div className={styles.pageWrapper}>
