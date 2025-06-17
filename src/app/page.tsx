@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { slugify } from '../utils/slugify';
 import Image from "next/image";
 import styles from "./page.module.css";
 
@@ -332,17 +333,23 @@ export default function Home() {
             <Link href="/bat-dong-san-ban" className={styles.seeMoreButton}>Xem thêm</Link>
           </div>
           <div className={styles.propertiesGrid}>
-            {[...Array(8)].map((_, i) => (
-              <div className={styles.propertyCard} key={i}>
-                <img src={`https://picsum.photos/300/200?random=${18 + i}`} alt={`Property ${i + 1}`} />
-                <div className={styles.propertyInfo}>
-                  <h3>Bán căn hộ chung cư {i + 1}</h3>
-                  <p className={styles.price}>{Math.floor(Math.random() * 5) + 1} tỷ</p>
-                  <p className={styles.details}>70m² - 2 PN</p>
-                  <p className={styles.location}>Quận {i + 1}, Hà Nội</p>
-                </div>
-              </div>
-            ))}
+            {[...Array(8)].map((_, i) => {
+              const title = `Bán căn hộ chung cư ${i + 1}`;
+              const slug = slugify(title);
+              return (
+                <Link href={`/tin-dang/${slug}`} key={i} className={styles.propertyLink}>
+                  <div className={styles.propertyCard}>
+                    <img src={`https://picsum.photos/300/200?random=${18 + i}`} alt={title} />
+                    <div className={styles.propertyInfo}>
+                      <h3>{title}</h3>
+                      <p className={styles.price}>{Math.floor(Math.random() * 5) + 1} tỷ</p>
+                      <p className={styles.details}>70m² - 2 PN</p>
+                      <p className={styles.location}>Quận {i + 1}, Hà Nội</p>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </section>
         <section className={styles.latestPropertiesSection}>
@@ -351,17 +358,23 @@ export default function Home() {
             <Link href="/bat-dong-san-thue" className={styles.seeMoreButton}>Xem thêm</Link>
           </div>
           <div className={styles.propertiesGrid}>
-            {[...Array(8)].map((_, i) => (
-              <div className={styles.propertyCard} key={i}>
-                <img src={`https://picsum.photos/300/200?random=${28 + i}`} alt={`Property ${i + 1}`} />
-                <div className={styles.propertyInfo}>
-                  <h3>Cho thuê căn hộ {i + 1}</h3>
-                  <p className={styles.price}>{Math.floor(Math.random() * 10) + 5} triệu/tháng</p>
-                  <p className={styles.details}>50m² - 1 PN</p>
-                  <p className={styles.location}>Quận {i + 1}, Hà Nội</p>
-                </div>
-              </div>
-            ))}
+            {[...Array(8)].map((_, i) => {
+              const title = `Cho thuê căn hộ ${i + 1}`;
+              const slug = slugify(title);
+              return (
+                <Link href={`/tin-dang/${slug}`} key={i} className={styles.propertyLink}>
+                  <div className={styles.propertyCard}>
+                    <img src={`https://picsum.photos/300/200?random=${28 + i}`} alt={title} />
+                    <div className={styles.propertyInfo}>
+                      <h3>{title}</h3>
+                      <p className={styles.price}>{Math.floor(Math.random() * 10) + 5} triệu/tháng</p>
+                      <p className={styles.details}>50m² - 1 PN</p>
+                      <p className={styles.location}>Quận {i + 1}, Hà Nội</p>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </section>
       </main>

@@ -559,3 +559,7 @@ body {
     width: 100%;
   }
 }
+.propertyLink {
+  text-decoration: none;
+  color: inherit;
+}
