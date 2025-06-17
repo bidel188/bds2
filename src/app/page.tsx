@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from 'next/navigation';
 import Link from "next/link";
 import { slugify } from '../utils/slugify';
 import Image from "next/image";
 import styles from "./page.module.css";
-import { supabase } from "../../supabaseClient";
+import { supabase } from "@/supabaseClient";
+import Header from "@/components/Header";
 
 type District = {
   id: string;
@@ -58,8 +60,8 @@ export default function Home() {
   const [selectedProject, setSelectedProject] = useState("");
   const [activeTab, setActiveTab] = useState("bán");
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const router = useRouter();
 
   const projectsPerSlide = 4;
   const totalSlides = Math.ceil(featuredProjectsData.length / projectsPerSlide);
@@ -142,39 +144,32 @@ export default function Home() {
     fetchData();
   }, []);
 
+  const handleSearch = () => {
+    const queryParams = new URLSearchParams();
+    
+    queryParams.set('loai', activeTab === 'bán' ? 'ban' : 'thue');
+
+    if (selectedDistrict) {
+      const district = districts.find(d => d.id === selectedDistrict);
+      if (district) {
+        queryParams.set('quan', slugify(district.name));
+      }
+    }
+
+    if (selectedProject) {
+      const project = projects.find(p => p.id === selectedProject);
+      if (project) {
+        queryParams.set('duan', slugify(project.name));
+      }
+    }
+
+    const url = `/tim-kiem?${queryParams.toString()}`;
+    router.push(url);
+  };
+
   return (
     <div>
-      <header className={styles.header}>
-        <div className={styles.logo}>bds29.vn</div>
-        <div className={styles.headerRight}>
-          <button className={styles.postButton}>Đăng tin</button>
-          <button className={styles.menuButton} onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            &#9776;
-          </button>
-        </div>
-        <div className={`${styles.mobileMenu} ${isMenuOpen ? styles.open : ""}`}>
-          <nav className={styles.mobileNav}>
-            <Link href="/">Trang chủ</Link>
-            <Link href="/can-ho-ban">Căn hộ bán</Link>
-            <Link href="/can-ho-cho-thue">Căn hộ cho thuê</Link>
-            <Link href="/du-an">Dự án</Link>
-            <Link href="/tin-tuc">Tin tức</Link>
-          </nav>
-          <div className={styles.mobileActions}>
-            <button className={styles.loginButton}>Đăng nhập</button>
-          </div>
-        </div>
-        <nav className={styles.navbar}>
-          <Link href="/">Trang chủ</Link>
-          <Link href="/can-ho-ban">Căn hộ bán</Link>
-          <Link href="/can-ho-cho-thue">Căn hộ cho thuê</Link>
-          <Link href="/du-an">Dự án</Link>
-          <Link href="/tin-tuc">Tin tức</Link>
-        </nav>
-        <div className={styles.actions}>
-          <button className={styles.loginButton}>Đăng nhập</button>
-        </div>
-      </header>
+      <Header />
       <main>
         <section className={styles.searchSection}>
           <div className={styles.searchBackground}></div>
@@ -249,7 +244,7 @@ export default function Home() {
                     <option value="Không">Không nội thất</option>
                   </select>
 
-                  <button className={styles.searchButton}>Tìm kiếm</button>
+                  <button className={styles.searchButton} onClick={handleSearch}>Tìm kiếm</button>
                 </div>
               </div>
             </div>
@@ -319,7 +314,7 @@ export default function Home() {
                   <option value="Không">Không nội thất</option>
                 </select>
 
-                <button className={styles.searchButton}>Tìm kiếm</button>
+                <button className={styles.searchButton} onClick={handleSearch}>Tìm kiếm</button>
               </div>
             </div>
           </div>

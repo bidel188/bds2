@@ -1,0 +1,192 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background-color: white;
+  color: black;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.header.twoRow {
+  padding: 0;
+}
+
+.topRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.bottomRow {
+  padding: 10px 20px;
+  background-color: #f9f9f9;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: black;
+}
+
+.navbar {
+  display: flex;
+  gap: 15px;
+}
+
+.navbar a {
+  text-decoration: none;
+  color: black;
+  font-size: 1rem;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.loginButton,
+.postButton {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  color: black;
+}
+
+.loginButton {
+  background-color: #f0f0f0;
+}
+
+.postButton {
+  background-color: #007bff;
+  color: white;
+}
+
+.searchContainer {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.searchTabs {
+  display: flex;
+  gap: 5px;
+}
+
+.searchTabs button {
+  padding: 8px 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background-color: #f0f0f0;
+  color: black;
+  transition: background-color 0.3s;
+}
+
+.searchTabs .activeTab {
+  background-color: #4a4a4a;
+  color: white;
+}
+
+.searchFields {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.searchFields select {
+  width: 150px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 0.9rem;
+}
+
+.searchButton {
+  padding: 8px 15px;
+  background-color: #d32f2f;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.searchButton:hover {
+  background-color: #b71c1c;
+}
+
+.headerRight {
+  display: none;
+}
+
+.mobileMenu {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .navbar, .actions, .searchContainer {
+    display: none;
+  }
+
+  .headerRight {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .menuButton {
+    display: block;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+  
+  .postButton {
+    background-color: #007bff;
+    color: white;
+    padding: 8px 12px;
+  }
+
+  .mobileMenu {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 80%;
+    height: 100%;
+    background-color: white;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    transition: left 0.3s ease-in-out;
+    z-index: 1500;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .mobileMenu.open {
+    left: 0;
+  }
+
+  .mobileNav {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+
+  .mobileNav a {
+    font-size: 1.2rem;
+    color: #333;
+  }
+
+  .mobileActions .loginButton {
+    width: 100%;
+    padding: 10px;
+    text-align: center;
+  }
+}

@@ -1,0 +1,88 @@
+.pageWrapper {
+  background-color: white;
+  width: 100%;
+}
+
+.pageContainer {
+  display: flex;
+  max-width: 66.66%;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.mainContent {
+  flex-grow: 1;
+}
+
+.resultsList .propertyCard {
+  display: flex;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.resultsList .propertyCard img {
+  width: 250px;
+  height: auto;
+  object-fit: cover;
+}
+
+.resultsList .propertyInfo {
+  padding: 20px;
+}
+
+.sidebar {
+  width: 300px;
+  margin-left: 20px;
+}
+
+.filterBox {
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.filterBox h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+}
+
+.filterBox ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.filterBox ul li {
+  margin-bottom: 8px;
+}
+
+.filterBox ul li a {
+  text-decoration: none;
+  color: #337ab7;
+}
+
+.filterBox ul li a:hover {
+  text-decoration: underline;
+}
+
+.propertyLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.price {
+  font-weight: bold;
+  color: #e60023;
+  margin-bottom: 10px;
+}
+
+.details, .location {
+  color: #555;
+  font-size: 0.9rem;
+}
