@@ -44,31 +44,56 @@ export default function Header({ showSearch = false }: HeaderProps) {
     }
   }, [selectedDistrict]);
 
-  const handleSearch = () => {
-    const queryParams = new URLSearchParams();
+  const handleSearch = async () => {
+    console.log('Search initiated'); // Debugging log
 
-    queryParams.set('loai', activeTab === 'bán' ? 'ban' : 'thue');
+    let query = supabase.from('posts').select('*, districts(name)');
+
+    if (activeTab) {
+        query = query.eq('purpose', activeTab === 'bán' ? 'Bán' : 'Cho thuê');
+        console.log('Filter by purpose:', activeTab === 'bán' ? 'Bán' : 'Cho thuê');
+    }
 
     if (selectedDistrict) {
-      const district = districts.find(d => d.id === selectedDistrict);
-      if (district) {
-        queryParams.set('quan', slugify(district.name));
-      }
+        const district = districts.find(d => d.id === selectedDistrict);
+        if (district) {
+            query = query.eq('districts.name', district.name);
+            console.log('Filter by district:', district.name);
+        }
     }
 
     if (selectedProject) {
-      const project = projects.find(p => p.id === selectedProject);
-      if (project) {
-        queryParams.set('duan', slugify(project.name));
-      }
+        const project = projects.find(p => p.id === selectedProject);
+        if (project) {
+            query = query.eq('project_name', project.name);
+            console.log('Filter by project:', project.name);
+        }
     }
 
-    const baseSlug = activeTab === 'bán' 
-      ? '/ban-can-ho-chung-cu' 
-      : '/cho-thue-can-ho-chung-cu';
+    const { data, error } = await query;
 
-    const url = `${baseSlug}?${queryParams.toString()}`;
-    router.push(url);
+    if (error) {
+        console.error('Error fetching search results:', error);
+    } else {
+        console.log('Fetched data:', data);
+        // Assuming you want to navigate to the search results page
+        const queryParams = new URLSearchParams();
+        queryParams.set('loai', activeTab === 'bán' ? 'ban' : 'thue');
+        if (selectedDistrict) {
+          const district = districts.find(d => d.id === selectedDistrict);
+          if (district) {
+            queryParams.set('quan', slugify(district.name));
+          }
+        }
+        if (selectedProject) {
+          const project = projects.find(p => p.id === selectedProject);
+          if (project) {
+            queryParams.set('duan', slugify(project.name));
+          }
+        }
+        const url = `/tim-kiem?${queryParams.toString()}`;
+        router.push(url);
+    }
   };
 
   return (

@@ -8,6 +8,7 @@ import Image from "next/image";
 import styles from "./page.module.css";
 import { supabase } from "@/supabaseClient";
 import Header from "@/components/Header";
+import { fetchFilteredPosts } from '@/utils/supabaseQueries';
 
 type District = {
   id: string;
@@ -61,7 +62,13 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState("bán");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchResults, setSearchResults] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  const [area, setArea] = useState("");
+  const [bedrooms, setBedrooms] = useState("");
+  const [furniture, setFurniture] = useState("");
 
   const projectsPerSlide = 4;
   const totalSlides = Math.ceil(featuredProjectsData.length / projectsPerSlide);
@@ -145,6 +152,17 @@ export default function Home() {
   }, []);
 
   const handleSearch = () => {
+    const searchValues = {
+        activeTab,
+        selectedDistrict,
+        selectedProject,
+        area,
+        bedrooms,
+        furniture: furniture
+    };
+
+    sessionStorage.setItem('searchValues', JSON.stringify(searchValues));
+
     const queryParams = new URLSearchParams();
 
     queryParams.set('loai', activeTab === 'bán' ? 'ban' : 'thue');
@@ -163,13 +181,21 @@ export default function Home() {
       }
     }
 
-    const baseSlug = activeTab === 'bán' 
-      ? '/ban-can-ho-chung-cu' 
-      : '/cho-thue-can-ho-chung-cu';
+    if (area) {
+      queryParams.set('area', area);
+    }
 
-    const url = `${baseSlug}?${queryParams.toString()}`;
+    if (bedrooms) {
+      queryParams.set('bedrooms', bedrooms);
+    }
+
+    if (furniture) {
+      queryParams.set('furniture', furniture);
+    }
+
+    const url = `/tim-kiem?${queryParams.toString()}`;
     router.push(url);
-  };
+};
 
   return (
     <div>
@@ -226,7 +252,10 @@ export default function Home() {
                     ))}
                   </select>
 
-                  <select>
+                  <select
+                    value={area}
+                    onChange={(e) => setArea(e.target.value)}
+                  >
                     <option value="">Diện tích</option>
                     <option value="<50">Dưới 50m²</option>
                     <option value="50-100">50-100m²</option>
@@ -234,7 +263,10 @@ export default function Home() {
                     <option value=">150">Trên 150m²</option>
                   </select>
 
-                  <select>
+                  <select
+                    value={bedrooms}
+                    onChange={(e) => setBedrooms(e.target.value)}
+                  >
                     <option value="">Số phòng ngủ</option>
                     <option value="1">1</option>
                     <option value="2">2</option>
@@ -242,13 +274,16 @@ export default function Home() {
                     <option value="4+">4+</option>
                   </select>
 
-                  <select>
+                  <select
+                    value={furniture}
+                    onChange={(e) => setFurniture(e.target.value)}
+                  >
                     <option value="">Nội thất</option>
                     <option value="Có">Có nội thất</option>
                     <option value="Không">Không nội thất</option>
                   </select>
 
-                  <button className={styles.searchButton} onClick={handleSearch}>Tìm kiếm</button>
+                  <button className={styles.searchButton} onClick={() => router.push('/tim-kiem')}>Tìm kiếm bất động sản</button>
                 </div>
               </div>
             </div>
@@ -296,7 +331,10 @@ export default function Home() {
                   ))}
                 </select>
 
-                <select>
+                <select
+                  value={area}
+                  onChange={(e) => setArea(e.target.value)}
+                >
                   <option value="">Diện tích</option>
                   <option value="<50">Dưới 50m²</option>
                   <option value="50-100">50-100m²</option>
@@ -304,7 +342,10 @@ export default function Home() {
                   <option value=">150">Trên 150m²</option>
                 </select>
 
-                <select>
+                <select
+                  value={bedrooms}
+                  onChange={(e) => setBedrooms(e.target.value)}
+                >
                   <option value="">Số phòng ngủ</option>
                   <option value="1">1</option>
                   <option value="2">2</option>
@@ -312,13 +353,16 @@ export default function Home() {
                   <option value="4+">4+</option>
                 </select>
 
-                <select>
+                <select
+                  value={furniture}
+                  onChange={(e) => setFurniture(e.target.value)}
+                >
                   <option value="">Nội thất</option>
                   <option value="Có">Có nội thất</option>
                   <option value="Không">Không nội thất</option>
                 </select>
 
-                <button className={styles.searchButton} onClick={handleSearch}>Tìm kiếm</button>
+                <button className={styles.searchButton} onClick={() => router.push('/tim-kiem')}>Tìm kiếm bất động sản</button>
               </div>
             </div>
           </div>
